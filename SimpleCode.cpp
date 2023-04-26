@@ -43,31 +43,26 @@ TSimpleCode::TUnpack TSimpleCode::Decode(const TPack& in) {
 	concurrency::array_view<TUnpack::value_type, 2> arrPack(exPack, ret);
 	arrPack.discard_data();
 	concurrency::parallel_for_each(arrPack.extent, [=](concurrency::index<2> idx) restrict(amp) {
-		if (!idx[1])
-			MakeDecode(&arrIn(idx[0],0), &arrPack(idx[0],0));
+		constexpr unsigned int mask = 0xFFFFFFFF;
+		unsigned int iFirst = idx[1] * 7 / 32;
+		unsigned int iSecond = idx[1] == 31 ? iFirst : (idx[1] + 1) * 7 / 32;
+		if (iFirst != iSecond) {
+			unsigned cut = (idx[1] + 1) * 7 % 8;
+			arrPack(idx) |= (arrIn(idx[0], iSecond) >> (32 - cut));
+			arrPack(idx) |= ((arrIn(idx[0], iFirst) & (mask >> 32 - 7 + cut)) << cut);
+		}
+		else {
+			unsigned int shift = (224 - (idx[1] * 7)) % 32;
+			unsigned int maskShift = 32 - shift;
+			shift -= 7;
+			unsigned int val = (arrIn(idx[0], iFirst) & (mask >> maskShift)) >> shift;
+			arrPack(idx) = val;
+		}
+		//if (!idx[1])
+		//	MakeDecode(&arrIn(idx[0],0), &arrPack(idx[0],0));
 								   });
 	arrPack.synchronize();
 	return ret;
-}
-
-void TSimpleCode::MakeCode(const int* itIn, unsigned int* itRet) restrict(amp) {
-	constexpr unsigned int kMask[] = { 0x1,0x3,0x7,0xF,0x1F,0x3F,0x7F };
-	const int* endIn = itIn + 32;
-	int shift = 32 - 7;
-	while (itIn < endIn) {
-		unsigned int val = *itIn++;
-		if (shift < 0) {
-			int delta = - shift;
-			*itRet |= (val >> delta);
-			val = val & kMask[delta];
-			shift += 32;
-			*++itRet |= (val << shift);
-		}
-		else {
-			*itRet |= (val << shift);
-		}
-		shift -= 7;
-	}
 }
 
 void TSimpleCode::MakeDecode(const unsigned int* itIn, int* itRet) restrict(amp) {

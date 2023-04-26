@@ -14,7 +14,6 @@ public:
 	static TPack Code(const TUnpack& in);
 	static TUnpack Decode(const TPack& in);
 private:
-	static void MakeCode(const int* itIn, unsigned int* itRet) restrict(amp);
 	static void MakeDecode(const unsigned int* itIn, int* itRet) restrict(amp);
 	//static void CompPack(TVal val, unsigned int step) restrict(amp);
 	//static TVal CompUnpack(size_t step, TVal first, TVal second);
