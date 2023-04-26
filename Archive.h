@@ -6,7 +6,7 @@ public:
 	using TUnpack = typename CodeType::TUnpack;
 	using TPack = typename CodeType::TPack;
 public:
-	static TPack Code(const TUnpack& in) { return CodeType::Code(in); }
-	static TUnpack Decode(const TPack& in) { return CodeType::Decode(in); }
+	static TPack Pack(const TUnpack& in) { return CodeType::Pack(in); }
+	static TUnpack Unpack(const TPack& in) { return CodeType::Unpack(in); }
 };
 

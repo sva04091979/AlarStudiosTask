@@ -1,10 +1,9 @@
 #include <cassert>
-#include <iostream>
 
 #include "SimpleCode.h"
 
 // static
-TSimpleCode::TPack TSimpleCode::Code(const TUnpack& in) {
+TSimpleCode::TPack TSimpleCode::Pack(const TUnpack& in) {
 	assert(in.size() % 32 == 0);
 	if (!in.size())
 		return TPack();
@@ -32,7 +31,7 @@ TSimpleCode::TPack TSimpleCode::Code(const TUnpack& in) {
 }
 
 // static
-TSimpleCode::TUnpack TSimpleCode::Decode(const TPack& in) {
+TSimpleCode::TUnpack TSimpleCode::Unpack(const TPack& in) {
 	if (!in.size())
 		return TUnpack();
 	size_t unpackSize = in.size() / 7 * 32;
@@ -58,47 +57,7 @@ TSimpleCode::TUnpack TSimpleCode::Decode(const TPack& in) {
 			unsigned int val = (arrIn(idx[0], iFirst) & (mask >> maskShift)) >> shift;
 			arrPack(idx) = val;
 		}
-		//if (!idx[1])
-		//	MakeDecode(&arrIn(idx[0],0), &arrPack(idx[0],0));
 								   });
 	arrPack.synchronize();
 	return ret;
 }
-
-void TSimpleCode::MakeDecode(const unsigned int* itIn, int* itRet) restrict(amp) {
-	int* endIt = itRet + 32;
-	unsigned int mask = 0xFFFFFFFF;
-	int shift = 32 - 7;
-	while (itRet < endIt) {
-		unsigned int val = *itIn & mask;
-		if (!shift) {
-			shift = 32 - 7;
-			*itRet = (*itIn & mask);
-			++itIn;
-			mask = 0xFFFFFFFF;
-		}
-		else if (shift < 0) {
-			int delta = -shift;
-			*itRet = (val << delta);
-			shift += 32;
-			*itRet |= (*++itIn >> shift);
-			mask = (0xFFFFFFFF >> delta);
-			shift -= 7;
-		}
-		else {
-			*itRet = (val >> shift);
-			shift -= 7;
-			mask >>= 7;
-		}
-		++itRet;
-	}
-}
-
-//TSimpleCode::TVal TSimpleCode::CompUnpack(size_t step, TVal first, TVal second) {
-//	switch (step) {
-//	case 0: return first >> 1;
-//	case 7: return first & kMask[6];
-//	default: return ((first & kMask[step - 1]) << (7 - step)) | (second >> (step + 1));
-//	}
-//}
-
