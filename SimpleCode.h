@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <amp.h>
 #include <optional>
 #include <vector>
 
@@ -17,6 +18,7 @@ public:
 	static TUnpack Decode(const TPack& in);
 private:
 	static void MakeCode(TUnpack::const_iterator itIn, TUnpack::const_iterator endIn, TPack::iterator itRet);
+	static void MakeCode(const TUnpack::value_type* itIn, TPack::value_type* itRet);
 	static TComp CompPack(TVal val, size_t step);
 	static TVal CompUnpack(size_t step, TVal first, TVal second);
 };
