@@ -16,8 +16,16 @@ TSimpleCode::TPack TSimpleCode::Code(const TUnpack& in) {
 	concurrency::array_view<TPack::value_type, 2> arrPack(exPack, ret);
 	arrPack.discard_data();
 	concurrency::parallel_for_each(arrPack.extent, [=](concurrency::index<2> idx) restrict(amp) {
-		if (!idx[1])
-			MakeCode(&arrIn(idx[0],0), &arrPack(idx[0],0));
+		unsigned int iLast = 32 * (idx[1]+1) / 7;
+		unsigned int cut = 7 - 32 * (idx[1] + 1) % 7;
+		unsigned int shift = 7 - cut;
+		unsigned int val = static_cast<unsigned int>(arrIn(idx[0], iLast));
+		arrPack(idx) = (val >> cut);
+		while (shift<32){
+			unsigned int val = static_cast<unsigned int>(arrIn(idx[0], --iLast));
+			arrPack(idx) |= ( val << shift);
+			shift += 7;
+		}
 								   });
 	arrPack.synchronize();
 	return ret;

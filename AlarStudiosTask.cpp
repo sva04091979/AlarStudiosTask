@@ -12,7 +12,7 @@ using TArch = TArchive<TSimpleCode>;
 using TUnpack = TArch::TUnpack;
 using TPack = TArch::TPack;
 
-constexpr size_t kInputSize = 10000000;
+constexpr size_t kInputSize = 1000000;
 
 int main() {
 	std::random_device rd;
@@ -20,6 +20,8 @@ int main() {
 	std::uniform_int_distribution<> distrib(1, 100);
 	TUnpack data(kInputSize);
 	std::generate(data.begin(), data.end(), [&distrib, &gen] {return distrib(gen); });
+	//int n = 0;
+	//std::generate(data.begin(), data.end(), [&n] {return ++n; });
 	auto time=std::make_unique<TTime>();
 	TPack pack = TArch::Code(data);
 	TUnpack unpack = TArch::Decode(pack);
